@@ -1,5 +1,5 @@
 import { commands } from "./command.js";
-import { discordData } from "./discordData.js";
+import { discordData } from "./data/discordData.js";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import ytdl from "ytdl-core";
