@@ -112,7 +112,10 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.commandName === "skip") {
     if (playList[indexSongInPlayList])
       await interaction.reply(playSong(playList[indexSongInPlayList]));
-    else await interaction.reply(`no hay cancion por reproducir`);
+    else {
+      audioPlayer.stop();
+      await interaction.reply(`no hay cancion por reproducir`);
+    }
   }
 
   if (interaction.commandName === "list") {
