@@ -3,7 +3,7 @@ import { discordData } from "./data/discordData.js";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import ytdl from "ytdl-core";
-import { Client, Intents } from "discord.js";
+import { Client, Intents, MessageEmbed } from "discord.js";
 import {
   joinVoiceChannel,
   createAudioPlayer,
@@ -104,7 +104,7 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.commandName === "go") {
     let indexSong = +interaction.options.getString("index");
     if (playList[indexSong - 1])
-      await interaction.reply(playSong(playList[indexSongInPlayList]));
+      await interaction.reply(playSong(playList[indexSong - 1]));
     else
       interaction.reply("no es posible reproducir la cancion con ese indice");
   }
@@ -116,9 +116,16 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.commandName === "list") {
-    let list = "";
-    playList.map((song, i) => (list += `${i + 1}. ${song.name}`));
-    await interaction.reply(list === "" ? "la lista se encuentra vacia" : list);
+    const exampleEmbed = new MessageEmbed()
+      .setColor("#0099ff")
+      .setTitle("Lista de reproducción")
+      .addFields(getList());
+
+    await interaction.reply(
+      playList.length > 0
+        ? { embeds: [exampleEmbed] }
+        : "la lista se encuentra vacia"
+    );
   }
 });
 
@@ -132,7 +139,7 @@ const SearchSong = async (songName) => {
         .find((item) => item.includes("list="))
         .slice(5);
       controller = "playlistItems";
-      params = { ...params, playlistId: playListId, maxResults: 50 };
+      params = { ...params, playlistId: playListId, maxResults: 200 };
     } else {
     }
   } else {
@@ -153,6 +160,13 @@ const SearchSong = async (songName) => {
             url: `https://www.youtube.com/watch?v=${video.snippet.resourceId.videoId}`,
           });
         });
+        client.channels
+          .fetch(channelTextid)
+          .then((channel) =>
+            channel.send(
+              `Se han agregado ${response.data.pageInfo.totalResults} canciones a la lista UwU`
+            )
+          );
         res = `Se han agregado ${response.data.pageInfo.totalResults} canciones a la lista UwU`;
       } else {
         const song = {
@@ -188,6 +202,29 @@ const playSong = (song) => {
 const validURL = (str) => {
   var pattern = /youtube.com/i;
   return !!pattern.test(str);
+};
+
+const getList = () => {
+  let objRange = {
+    start:
+      indexSongInPlayList > 10
+        ? indexSongInPlayList - 6
+        : indexSongInPlayList - 1,
+    end: indexSongInPlayList > 10 ? indexSongInPlayList + 6 : 11,
+  };
+
+  return playList
+    .slice(objRange.start, objRange.end)
+    .filter((x) => x)
+    .map((song, i) => {
+      return {
+        name:
+          i === indexSongInPlayList - 1
+            ? `🎶 ${i + 1}. ${song.name} 🎶`
+            : `${i + 1}. ${song.name}`,
+        value: `${song.url}`,
+      };
+    });
 };
 
 client.login(discordData.TOKEN);
