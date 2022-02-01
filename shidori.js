@@ -180,7 +180,7 @@ const SearchSong = async (songName) => {
         res = `se ha agregado a la lista ${song.name}`;
       }
       if (status !== AudioPlayerStatus.Playing) {
-        res = playSong(playList[0]);
+        res = playSong(playList[indexSongInPlayList]);
       }
     })
     .catch((err) => (res = err));
@@ -221,7 +221,7 @@ const getList = () => {
     .filter((x) => x)
     .map((song, i) => {
       return {
-        name:
+        name:~
           i === indexSongInPlayList - 1
             ? `🎶 ${i + 1}. ${song.name} 🎶`
             : `${i + 1}. ${song.name}`,
@@ -229,5 +229,4 @@ const getList = () => {
       };
     });
 };
-
 client.login(discordData.TOKEN);
