@@ -124,6 +124,8 @@ client.on("interactionCreate", async (interaction) => {
       .setTitle("Lista de reproducción")
       .addFields(getList());
 
+      console.log(playList);
+
     await interaction.reply(
       playList.length > 0
         ? { embeds: [exampleEmbed] }
@@ -144,12 +146,15 @@ const SearchSong = async (songName) => {
       controller = "playlistItems";
       params = { ...params, playlistId: playListId, maxResults: 200 };
     } else {
+        let url = new URL(songName);
+        let keyVideo = url.searchParams.get("v");
+        params = { ...params, q: keyVideo ,type: "video" };
     }
   } else {
     params = { ...params, q: songName, type: "video" };
   }
 
-  let res = "";
+  let res = "error";
   await axios
     .get(`https://www.googleapis.com/youtube/v3/${controller}?`, {
       params: params,
@@ -176,6 +181,7 @@ const SearchSong = async (songName) => {
           name: response.data.items[0].snippet.title,
           url: `https://www.youtube.com/watch?v=${response.data.items[0].id.videoId}`,
         };
+        console.log(song);
         playList.push(song);
         res = `se ha agregado a la lista ${song.name}`;
       }
@@ -184,12 +190,20 @@ const SearchSong = async (songName) => {
       }
     })
     .catch((err) => (res = err));
+
   return res;
 };
 
 const playSong = (song) => {
   audioPlayer.stop();
-  let stream = ytdl(song.url, { filter: "audioonly" }).on("error", (e) => {
+  let stream = ytdl(song.url, {filter: 'audioonly',
+  fmt: "mp3",
+  highWaterMark: 1 << 62,
+  liveBuffer: 1 << 62,
+  dlChunkSize: 0, //disabling chunking is recommended in discord bot
+  bitrate: 128,
+  quality: "lowestaudio"
+}).on("error", (e) => {
     console.log(e);
   });
 
